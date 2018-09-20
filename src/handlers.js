@@ -29,7 +29,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
             );
           })
           .catch(e => {
-            throw new Error(`sw: error updating cache ${cacheName}: ${e}`);
+            throw new Error(`sw: error updatingg cache ${cacheName}: ${e}`);
           })
       );
     },
@@ -115,4 +115,3 @@ function responseIsHtml(response) {
   const contentType = response.headers.get('content-type');
   return contentType && contentType.indexOf('html') > -1;
 }
-
