@@ -2687,7 +2687,7 @@ functional-red-black-tree@^1.0.1:
 
 fusion-core@^1.4.1:
   version "1.4.1"
-  resolved "https://unpm.uberinternal.com/fusion-core/-/fusion-core-1.4.1.tgz#22daeddeefa3125b056cdcccd9c6dd486d7f032e"
+  resolved "https://registry.yarnpkg.com/fusion-core/-/fusion-core-1.4.1.tgz#22daeddeefa3125b056cdcccd9c6dd486d7f032e"
   dependencies:
     koa "^2.4.1"
     koa-compose "^4.0.0"
