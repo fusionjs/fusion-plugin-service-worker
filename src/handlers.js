@@ -115,4 +115,3 @@ function responseIsHtml(response) {
   const contentType = response.headers.get('content-type');
   return contentType && contentType.indexOf('html') > -1;
 }
-
