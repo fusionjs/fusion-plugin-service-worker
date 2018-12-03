@@ -17,15 +17,13 @@ export default function getHandlers(assetInfo: AssetInfo) {
         caches
           .open(cacheName)
           .then(cache => {
-            return (
-              cache
-                .addAll(precachePaths)
-                .then(() =>
-                  getOutdatedKeys(cache, cacheablePaths).then(outdatedKeys =>
-                    removeKeys(cache, outdatedKeys)
-                  )
+            return cache
+              .addAll(precachePaths)
+              .then(() =>
+                getOutdatedKeys(cache, cacheablePaths).then(outdatedKeys =>
+                  removeKeys(cache, outdatedKeys)
                 )
-            );
+              );
           })
           .catch(e => {
             throw new Error(`sw: error updating cache ${cacheName}: ${e}`);
