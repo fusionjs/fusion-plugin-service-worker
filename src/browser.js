@@ -3,8 +3,9 @@
 /* global window */
 
 import {createPlugin} from 'fusion-core';
+import type {FusionPlugin} from 'fusion-core';
 
-export default createPlugin({
+const plugin = createPlugin({
   middleware() {
     return (ctx, next) => {
       if ('serviceWorker' in window.navigator) {
@@ -21,3 +22,4 @@ export default createPlugin({
     };
   },
 });
+export default ((__NODE__ && plugin: any): FusionPlugin<{}, void>);

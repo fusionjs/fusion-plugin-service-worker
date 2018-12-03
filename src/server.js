@@ -2,7 +2,8 @@
 
 /* global */
 
-import {createPlugin /*, serviceWorkerTemplate */} from 'fusion-core';
+import {createPlugin} from 'fusion-core';
+import type {FusionPlugin} from 'fusion-core';
 
 // TODO(#23): temporary imports
 import serviceWorkerTemplateSouce from './mock-service-worker-source';
@@ -12,7 +13,7 @@ function serviceWorkerTemplate(args) {
   return `${serviceWorkerTemplateSouce};serviceWorker(${JSON.stringify(args)})`;
 }
 
-export default createPlugin({
+const plugin = createPlugin({
   middleware() {
     return async (ctx, next) => {
       if (__NODE__) {
@@ -38,3 +39,4 @@ export default createPlugin({
     };
   },
 });
+export default ((__NODE__ && plugin: any): FusionPlugin<{}, void>);
