@@ -5,23 +5,19 @@
 import {createPlugin} from 'fusion-core';
 import type {FusionPlugin} from 'fusion-core';
 
-import {SWTemplateSourceToken} from './tokens';
+import {SWTemplateFunctionToken} from './tokens';
 
-// TODO(#23): temporary imports
-// import serviceWorkerTemplateSouce from './mock-service-worker-source';
-
-// TODO(#23): this will be in fusion-core
-function invokeSWTemplate(templateSource, resources) {
-  return `${templateSource};serviceWorker(${JSON.stringify(resources)})`;
+function invokeTemplateFn(templateFn, resources) {
+  return templateFn(resources);
 }
 
 export default ((__NODE__ &&
   createPlugin({
     deps: {
-      templateSource: SWTemplateSourceToken,
+      templateFn: SWTemplateFunctionToken,
     },
 
-    middleware: ({templateSource}) => {
+    middleware: ({templateFn}) => {
       return async (ctx, next) => {
         if (__NODE__) {
           if (ctx.method === 'GET' && ctx.url === '/sw.js') {
@@ -32,7 +28,7 @@ export default ((__NODE__ &&
             try {
               ctx.type = 'text/javascript';
               ctx.set('Cache-Control', 'max-age=0');
-              ctx.body = invokeSWTemplate(templateSource, {
+              ctx.body = invokeTemplateFn(templateFn, {
                 // TODO(#24): use correct values
                 precachePaths: chunkUrls,
                 cacheablePaths: chunkUrls,

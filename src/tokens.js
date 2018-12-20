@@ -10,6 +10,6 @@ import {createToken} from 'fusion-core';
 
 import type {ConfigTokenType} from './types.js';
 
-export const SWTemplateSourceToken: ConfigTokenType = createToken(
-  'SWTemplateSourceToken'
+export const SWTemplateFunctionToken: ConfigTokenType = createToken(
+  'SWTemplateFunctionToken'
 );
