@@ -77,11 +77,14 @@ function removeKeys(cache, keys) {
 }
 
 function fetchNCache(request, expectsHtml) {
+  const log = console;
   return fetch(request).then(resp => {
+    log.log('*', 'resp.status', request.url, resp.status);
     if (resp.status !== 200) {
       return Promise.resolve(resp);
     }
     const clonedResponse = resp.clone();
+    log.log('**', 'clonedResponse', request.url, clonedResponse);
     caches.open(cacheName).then(cache => {
       if (expectsHtml) {
         // check we got html before caching
@@ -89,7 +92,9 @@ function fetchNCache(request, expectsHtml) {
           return Promise.resolve(resp);
         }
       }
+      log.log('***', 'about to put cache', request.url);
       cache.put(request.url, clonedResponse);
+      log.log('****', 'put cache', request.url);
     });
     return Promise.resolve(resp);
   });
