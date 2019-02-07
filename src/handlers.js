@@ -52,6 +52,8 @@ export default function getHandlers(assetInfo: AssetInfo) {
               fetchNCache(event.request, expectsHtml);
             }
           }
+          // testing this: always replenish cache for next time
+          fetchNCache(event.request, expectsHtml);
           return cachedResponse;
         }
         return fetchNCache(event.request, expectsHtml);
@@ -80,7 +82,7 @@ function fetchNCache(request, expectsHtml) {
   const log = console;
   return fetch(request).then(resp => {
     log.log('*', 'resp.status', request.url, resp.status);
-    if (resp.status !== 200) {
+    if (resp.status !== 200 || resp.status !== 0) {
       return Promise.resolve(resp);
     }
     const clonedResponse = resp.clone();
