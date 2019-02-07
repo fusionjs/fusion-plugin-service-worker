@@ -31,7 +31,6 @@ export default function getHandlers(assetInfo: AssetInfo) {
       );
     },
     onFetch: (event: FetchEvent) => {
-      const HTML_TTL = 1 * 24 * 60 * 60 * 1001; // 1 day
       const expectsHtml = requestExpectsHtml(event.request);
       if (
         !expectsHtml &&
@@ -43,20 +42,10 @@ export default function getHandlers(assetInfo: AssetInfo) {
       }
       const p = caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) {
-          if (expectsHtml) {
-            const responseCreated = new Date(
-              cachedResponse.headers.get('date') || 0
-            ).valueOf();
-            if (Date.now() - responseCreated > HTML_TTL) {
-              // html expired: use the cache, but refresh cache for next time
-              fetchNCache(event.request, expectsHtml);
-            }
-          }
-          // testing this: always replenish cache for next time
-          fetchNCache(event.request, expectsHtml);
-          return cachedResponse;
+          fetchNCache(event.request, expectsHtml); // async update cache for next time
+          return cachedResponse; // return cache now
         }
-        return fetchNCache(event.request, expectsHtml);
+        return fetchNCache(event.request, expectsHtml); // fetch, then cache and return
       });
       event.respondWith(p);
       event.waitUntil(p);
@@ -79,14 +68,11 @@ function removeKeys(cache, keys) {
 }
 
 function fetchNCache(request, expectsHtml) {
-  const log = console;
   return fetch(request).then(resp => {
-    log.log('*', 'resp.status', request.url, resp.status);
-    if (resp.status !== 200 || resp.status !== 0) {
+    if (resp.status !== 200 && resp.status !== 0) {
       return Promise.resolve(resp);
     }
     const clonedResponse = resp.clone();
-    log.log('**', 'clonedResponse', request.url, clonedResponse);
     caches.open(cacheName).then(cache => {
       if (expectsHtml) {
         // check we got html before caching
@@ -94,9 +80,7 @@ function fetchNCache(request, expectsHtml) {
           return Promise.resolve(resp);
         }
       }
-      log.log('***', 'about to put cache', request.url);
       cache.put(request.url, clonedResponse);
-      log.log('****', 'put cache', request.url);
     });
     return Promise.resolve(resp);
   });
