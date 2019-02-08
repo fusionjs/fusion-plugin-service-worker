@@ -86,9 +86,10 @@ function fetchNCache(request, expectsHtml) {
         // check we got html before caching
         if (!responseIsHtml(clonedResponse)) {
           debug.log(
-            `[DEBUG] sw: expected HTML but got ${clonedResponse.headers.get(
-              'content-type'
-            )}`
+            `[DEBUG] sw: expected HTML but got ${(clonedResponse &&
+              clonedResponse.headers &&
+              clonedResponse.headers.get('content-type')) ||
+              'unknown'}`
           );
           return Promise.resolve(resp);
         }
