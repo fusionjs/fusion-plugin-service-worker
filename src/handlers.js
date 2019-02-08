@@ -31,7 +31,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
             // (`addAll` expects a 200 response, but CORS returns an opaque response)
             // CORS resources will be lazily cached on first fetch instead
             /* eslint-disable-next-line no-console */
-            debug.log(`[DEBUG] sw: unable to pre-cache some resources: ${e}`);
+            debug.log(`[sw debug] unable to pre-cache some resources: ${e}`);
           })
       );
     },
@@ -47,10 +47,10 @@ export default function getHandlers(assetInfo: AssetInfo) {
       }
       const p = caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) {
-          fetchNCache(event.request, expectsHtml); // async update cache for next time
+          fetchAndCache(event.request, expectsHtml); // async update cache for next time
           return cachedResponse; // return cache now
         }
-        return fetchNCache(event.request, expectsHtml); // fetch, then cache and return
+        return fetchAndCache(event.request, expectsHtml); // fetch, then cache and return
       });
       event.respondWith(p);
       event.waitUntil(p);
@@ -72,11 +72,10 @@ function removeKeys(cache, keys) {
   return Promise.all(keys.map(key => cache.delete(key)));
 }
 
-function fetchNCache(request, expectsHtml) {
+function fetchAndCache(request, expectsHtml) {
   return fetch(request).then(resp => {
-    debug.log(
-      `[DEBUG] sw: request.url=${request.url}, resp.status=${resp.status}`
-    );
+    // Allow 0 status code because that is opaque response from behind CORS
+    // We do an immediate network fetch after this, so if response was bad it won't stay bad
     if (resp.status !== 200 && resp.status !== 0) {
       return Promise.resolve(resp);
     }
@@ -86,15 +85,15 @@ function fetchNCache(request, expectsHtml) {
         // check we got html before caching
         if (!responseIsHtml(clonedResponse)) {
           debug.log(
-            `[DEBUG] sw: expected HTML but got ${clonedResponse.headers.get(
-              'content-type'
-            )}`
+            `[sw debug] expected HTML but got ${(clonedResponse &&
+              clonedResponse.headers &&
+              clonedResponse.headers.get('content-type')) ||
+              'unknown'}`
           );
           return Promise.resolve(resp);
         }
       }
       cache.put(request.url, clonedResponse);
-      debug.log(`[DEBUG] sw: added ${request.url} to cache`);
     });
     return Promise.resolve(resp);
   });
