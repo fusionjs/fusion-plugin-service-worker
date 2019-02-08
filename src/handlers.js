@@ -73,7 +73,7 @@ function removeKeys(cache, keys) {
 }
 
 function fetchNCache(request, expectsHtml) {
-  return fetch(request, {mode: 'no-cors'}).then(resp => {
+  return fetch(request).then(resp => {
     debug.log(
       `[DEBUG] sw: request.url=${request.url}, resp.status=${resp.status}`
     );
