@@ -6,6 +6,7 @@
 import type {AssetInfo} from './types';
 
 const cacheName = '0.0.0'; // we don't expect this to change
+const debug = console;
 
 export default function getHandlers(assetInfo: AssetInfo) {
   const {precachePaths, cacheablePaths} = assetInfo;
@@ -26,7 +27,11 @@ export default function getHandlers(assetInfo: AssetInfo) {
               );
           })
           .catch(e => {
-            throw new Error(`sw: error updating cache ${cacheName}: ${e}`);
+            // Don't throw an error because we expect CORS (CDN) requests to not be precacheable
+            // (`addAll` expects a 200 response, but CORS returns an opaque response)
+            // CORS resources will be lazily cached on first fetch instead
+            /* eslint-disable-next-line no-console */
+            debug.log(`[DEBUG] sw: unable to pre-cache some resources: ${e}`);
           })
       );
     },
@@ -68,7 +73,10 @@ function removeKeys(cache, keys) {
 }
 
 function fetchNCache(request, expectsHtml) {
-  return fetch(request).then(resp => {
+  return fetch(request, {mode: 'no-cors'}).then(resp => {
+    debug.log(
+      `[DEBUG] sw: request.url=${request.url}, resp.status=${resp.status}`
+    );
     if (resp.status !== 200 && resp.status !== 0) {
       return Promise.resolve(resp);
     }
@@ -77,10 +85,16 @@ function fetchNCache(request, expectsHtml) {
       if (expectsHtml) {
         // check we got html before caching
         if (!responseIsHtml(clonedResponse)) {
+          debug.log(
+            `[DEBUG] sw: expected HTML but got ${clonedResponse.headers.get(
+              'content-type'
+            )}`
+          );
           return Promise.resolve(resp);
         }
       }
       cache.put(request.url, clonedResponse);
+      debug.log(`[DEBUG] sw: added ${request.url} to cache`);
     });
     return Promise.resolve(resp);
   });
