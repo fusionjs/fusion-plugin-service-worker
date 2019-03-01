@@ -42,7 +42,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
         all.map(client =>
           client.postMessage({
             type: 'upgrade-available',
-            text: '*** from sw: reload for updates',
+            text: 'reload for updates',
           })
         )
       );
@@ -66,7 +66,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
                       all.map(client =>
                         client.postMessage({
                           type: 'cache-expired',
-                          text: '*** from sw: cache expired',
+                          text: 'cache expired',
                         })
                       )
                     )

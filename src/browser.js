@@ -7,6 +7,8 @@ import type {FusionPlugin} from 'fusion-core';
 import {SWLoggerToken, SWRegisterToken} from './tokens';
 import {unregisterServiceWorker} from './utils';
 
+const messagePrefix = '*** message from service worker:';
+
 export default ((createPlugin({
   deps: {
     logger: SWLoggerToken.optional,
@@ -23,10 +25,11 @@ export default ((createPlugin({
               .then(res => logger.log('*** sw registered:', res))
               .catch(e => logger.log('*** sw registration faiiled:', e));
             sw.addEventListener('message', event => {
-              // additional listeners can be added at the app level
-              if (existingSW && event.data.type === 'upgrade-available') {
-                // prompt user to reload for new build
-                logger.log(event.data.text);
+              // (additional listeners can be added at the app level)
+              if (event.data.type !== 'upgrade-available' || existingSW) {
+                // prompt user to reload for new build if there's an existing service worker
+                // log any other message from service worker
+                logger.log(messagePrefix, event.data.text);
               }
             });
           } else {
