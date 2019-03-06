@@ -13,6 +13,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
   const {
     precachePaths,
     cacheablePaths,
+    cacheableDomains,
     maxCacheDurationMs = defaultMaxCacheDuration,
   } = assetInfo;
   return {
@@ -50,6 +51,13 @@ export default function getHandlers(assetInfo: AssetInfo) {
     onFetch: (event: FetchEvent) => {
       try {
         const expectsHtml = requestExpectsHtml(event.request);
+        if (
+          expectsHtml &&
+          !requestingFromCacheableDomain(event, cacheableDomains)
+        ) {
+          // clear cache then bypass service worker, use network
+          return caches.delete(cacheName);
+        }
         if (requestNotCacheable(expectsHtml, cacheablePaths, event)) {
           // bypass service worker, use network
           return;
@@ -148,6 +156,13 @@ function cacheHasExpired(cachedResponse, maxCacheDurationMs) {
   return dateHeader
     ? Date.now() - new Date(dateHeader).valueOf() > maxCacheDurationMs
     : false;
+}
+
+function requestingFromCacheableDomain(event, cacheableDomains) {
+  return (
+    !cacheableDomains ||
+    cacheableDomains.some(domain => domain.indexOf(event.request.url) > -1)
+  );
 }
 
 function unexpectedResponseMessage(resp) {
