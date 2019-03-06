@@ -13,7 +13,7 @@ export default function getHandlers(assetInfo: AssetInfo) {
   const {
     precachePaths,
     cacheablePaths,
-    cacheableDomains,
+    cacheInvalidatingPatterns,
     maxCacheDurationMs = defaultMaxCacheDuration,
   } = assetInfo;
   return {
@@ -51,12 +51,15 @@ export default function getHandlers(assetInfo: AssetInfo) {
     onFetch: (event: FetchEvent) => {
       try {
         const expectsHtml = requestExpectsHtml(event.request);
-        if (
-          expectsHtml &&
-          !requestingFromCacheableDomain(event, cacheableDomains)
-        ) {
+        if (useNetwork(event, expectsHtml, cacheInvalidatingPatterns)) {
           // clear cache then bypass service worker, use network
-          return caches.delete(cacheName);
+          return caches
+            .delete(cacheName)
+            .then(() =>
+              debug.log(
+                `[debug] navigation to ${event.request.url}, bypassed cache`
+              )
+            );
         }
         if (requestNotCacheable(expectsHtml, cacheablePaths, event)) {
           // bypass service worker, use network
@@ -158,10 +161,12 @@ function cacheHasExpired(cachedResponse, maxCacheDurationMs) {
     : false;
 }
 
-function requestingFromCacheableDomain(event, cacheableDomains) {
+function useNetwork(event, expectsHTML, cacheInvalidatingPatterns) {
   return (
-    !cacheableDomains ||
-    cacheableDomains.some(domain => domain.indexOf(event.request.url) > -1)
+    cacheInvalidatingPatterns &&
+    cacheInvalidatingPatterns.some(
+      pattern => event.request.url.indexOf(pattern) > -1
+    )
   );
 }
 

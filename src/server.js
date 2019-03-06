@@ -24,7 +24,7 @@ export default ((__NODE__ &&
     },
     middleware: ({
       templateFn,
-      options: {cacheableDomains, maxCacheDurationMs} = {},
+      options: {cacheInvalidatingPatterns, maxCacheDurationMs} = {},
     }) => {
       return async (ctx, next) => {
         if (__NODE__) {
@@ -42,7 +42,7 @@ export default ((__NODE__ &&
                 precachePaths: chunkUrls.filter(url =>
                   hasSameHostName(url, ctx.url)
                 ),
-                cacheableDomains,
+                cacheInvalidatingPatterns,
                 maxCacheDurationMs,
               });
             } catch (e) {

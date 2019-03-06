@@ -12,7 +12,7 @@ import type {Token} from 'fusion-core';
 import type {ConfigTokenType, SWLoggerTokenType} from './types.js';
 
 type Options = {
-  cacheableDomains?: Array<string>,
+  cacheInvalidatingPatterns?: Array<string>,
   maxCacheDurationMs?: number,
 };
 
