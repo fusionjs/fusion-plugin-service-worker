@@ -50,6 +50,10 @@ export default function getHandlers(assetInfo: AssetInfo) {
     onFetch: (event: FetchEvent) => {
       try {
         const expectsHtml = requestExpectsHtml(event.request);
+        debug.log(`(0) Any request: ${event.request.url}`);
+        if (expectsHtml) {
+          debug.log(`(1) HTML request: ${getRequestDetails(event.request)}`);
+        }
         if (requestNotCacheable(expectsHtml, cacheablePaths, event)) {
           // bypass service worker, use network
           return;
@@ -59,6 +63,9 @@ export default function getHandlers(assetInfo: AssetInfo) {
             if (expectsHtml) {
               if (cacheHasExpired(cachedResponse, maxCacheDurationMs)) {
                 // if html cache has expired, clear all caches and refetch
+                debug.log(
+                  `(2) HTML request: ${getRequestDetails(event.request)}`
+                );
                 return caches
                   .delete(cacheName)
                   .then(() =>
@@ -95,6 +102,8 @@ function fetchAndCache(request, expectsHtml) {
     if (expectsHtml) {
       // check we've got good html before caching
       if (!responseIsOKAndHtml(resp)) {
+        debug.log(`(3a) HTML request: ${getRequestDetails(request)}`);
+        debug.log(`(3b) HTML response: ${JSON.stringify(resp, null, 2)}`);
         debug.log(unexpectedResponseMessage(resp));
         // Might be redirect due to session expiry or error
         // Clear cache but still pass original response back to browser
@@ -155,4 +164,9 @@ function unexpectedResponseMessage(resp) {
     resp.headers &&
     resp.headers.get('content-type')) ||
     'unknown'}`;
+}
+
+function getRequestDetails(request) {
+  const {url, referrer, redirect} = request;
+  return JSON.stringify({url, referrer, redirect}, null, 2);
 }
