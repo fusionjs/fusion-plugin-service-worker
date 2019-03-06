@@ -6,7 +6,7 @@ import url from 'url';
 import {createPlugin} from 'fusion-core';
 import type {FusionPlugin} from 'fusion-core';
 
-import {SWTemplateFunctionToken, SWMaxCacheDurationMs} from './tokens';
+import {SWTemplateFunctionToken, SWOptionsToken} from './tokens';
 
 function invokeTemplateFn(templateFn, resources) {
   return templateFn(resources);
@@ -20,9 +20,12 @@ export default ((__NODE__ &&
   createPlugin({
     deps: {
       templateFn: SWTemplateFunctionToken,
-      maxCacheDurationMs: SWMaxCacheDurationMs.optional,
+      options: SWOptionsToken.optional,
     },
-    middleware: ({templateFn, maxCacheDurationMs}) => {
+    middleware: ({
+      templateFn,
+      options: {cacheableDomains, maxCacheDurationMs} = {},
+    }) => {
       return async (ctx, next) => {
         if (__NODE__) {
           if (ctx.method === 'GET' && ctx.url === '/sw.js') {
@@ -39,6 +42,7 @@ export default ((__NODE__ &&
                 precachePaths: chunkUrls.filter(url =>
                   hasSameHostName(url, ctx.url)
                 ),
+                cacheableDomains,
                 maxCacheDurationMs,
               });
             } catch (e) {
