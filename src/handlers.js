@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // @flow
 
 /* eslint-env serviceworker */
@@ -54,7 +55,9 @@ export default function getHandlers(assetInfo: AssetInfo) {
     onFetch: (event: FetchEvent) => {
       try {
         const expectsHtml = requestExpectsHtml(event.request);
+        console.log('**** entering onFetch, url = ', event.request.url);
         if (shouldInvalidateCache(event, cacheBustingPatterns)) {
+          console.log('**** onFetch, invalidating cache ', event.request.url);
           // clear cache then bypass service worker, use network
           return caches
             .delete(cacheName)
@@ -73,13 +76,20 @@ export default function getHandlers(assetInfo: AssetInfo) {
           )
         ) {
           // bypass service worker, use network
+          console.log('**** onFetch, not cacheable ', event.request.url);
           return;
         }
+        console.log('**** onFetch, url is cacheable', event.request.url);
         const p = caches.match(event.request).then(cachedResponse => {
           if (cachedResponse) {
+            console.log(
+              '**** onFetch, url is already cached',
+              event.request.url
+            );
             if (expectsHtml) {
               if (cacheHasExpired(cachedResponse, cacheDuration)) {
                 // if html cache has expired, clear all caches and refetch
+                console.log('**** onFetch, cache expired', event.request.url);
                 return caches
                   .delete(cacheName)
                   .then(() =>
@@ -96,6 +106,10 @@ export default function getHandlers(assetInfo: AssetInfo) {
               }
             }
             fetchAndCache(event.request, expectsHtml); // async update cache for next time
+            console.log(
+              '**** onFetch, returning cachedResponse for',
+              event.request.url
+            );
             return cachedResponse; // return cache now
           }
           return fetchAndCache(event.request, expectsHtml); // fetch, then cache and return
@@ -112,10 +126,12 @@ export default function getHandlers(assetInfo: AssetInfo) {
 }
 
 function fetchAndCache(request, expectsHtml) {
+  console.log('**** about to fetchAndCache', request.url);
   return fetch(request).then(resp => {
     if (expectsHtml) {
       // check we've got good html before caching
       if (!responseIsOKAndHtml(resp)) {
+        console.log('**** fetchAndCache, bad html', request.url);
         debug.log(unexpectedResponseMessage(resp));
         // Might be redirect due to session expiry or error
         // Clear cache but still pass original response back to browser
@@ -134,6 +150,7 @@ function fetchAndCache(request, expectsHtml) {
       cache.put(request.url, clonedResponse);
     });
     // Pass original response back to browser
+    console.log('**** fetchAndCache, return response', request.url);
     return Promise.resolve(resp);
   });
 }
