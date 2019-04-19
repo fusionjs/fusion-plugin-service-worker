@@ -186,7 +186,9 @@ function requestIsCacheable(
       ? cacheableRoutePatterns.some(p => (url.pathname + url.search).match(p))
       : true;
   } else {
-    return cacheablePaths.includes(url.pathname);
+    return (
+      cacheablePaths.includes(url.href) || cacheablePaths.includes(url.pathname)
+    );
   }
 }
 
